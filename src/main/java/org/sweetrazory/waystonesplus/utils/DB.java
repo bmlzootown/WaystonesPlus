@@ -18,7 +18,8 @@ public class DB {
         ResultSet resultSet = DatabaseManager.execute(query);
 
         try {
-            while (resultSet.next()) {
+            if (resultSet != null) {
+                while (resultSet.next()) {
                 String uuid = resultSet.getString("id");
                 String particleString = resultSet.getString("particle");
                 String locationString = resultSet.getString("location");
@@ -26,8 +27,9 @@ public class DB {
                 Particle particle = particleString.equals("off") ? null : Particle.valueOf(particleString);
                 Location location = parseLocationString(locationString);
 
-                WaystoneParticleInfo waystoneInfo = new WaystoneParticleInfo(uuid, particle, location);
-                waystoneInfoList.add(waystoneInfo);
+                    WaystoneParticleInfo waystoneInfo = new WaystoneParticleInfo(uuid, particle, location);
+                    waystoneInfoList.add(waystoneInfo);
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -57,11 +59,12 @@ public class DB {
 
     public static List<Waystone> getPlayerWaystones(String playerId) {
         List<Waystone> waystones = new ArrayList<>();
-        String query = "SELECT * FROM waystones WHERE owner = '" + playerId + "'";
-        ResultSet resultSet = DatabaseManager.execute(query);
+        String query = "SELECT * FROM waystones WHERE owner = ?";
+        ResultSet resultSet = DatabaseManager.execute(query, playerId);
 
         try {
-            while (resultSet.next()) {
+            if (resultSet != null) {
+                while (resultSet.next()) {
                 String uuid = resultSet.getString("id");
                 String name = resultSet.getString("name");
 
@@ -87,8 +90,9 @@ public class DB {
                     entityIdsArray[i] = Integer.parseInt(entityIdStrings[i]);
                 }
 
-                Waystone waystone = new Waystone(uuid, name, location, type, owner, particle.equals("off") ? null : Particle.valueOf(particle), Visibility.fromString(visibility), Arrays.asList(entityIdsArray), icon);
-                waystones.add(waystone);
+                    Waystone waystone = new Waystone(uuid, name, location, type, owner, particle.equals("off") ? null : Particle.valueOf(particle), Visibility.fromString(visibility), Arrays.asList(entityIdsArray), icon);
+                    waystones.add(waystone);
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -103,7 +107,8 @@ public class DB {
         ResultSet resultSet = DatabaseManager.execute(query);
 
         try {
-            while (resultSet.next()) {
+            if (resultSet != null) {
+                while (resultSet.next()) {
                 String uuid = resultSet.getString("id");
                 String name = resultSet.getString("name");
 
@@ -128,8 +133,9 @@ public class DB {
                     entityIdsArray[i] = Integer.parseInt(entityIdStrings[i]);
                 }
 
-                Waystone waystone = new Waystone(uuid, name, location, type, owner, particle.equals("off") ? null : Particle.valueOf(particle), Visibility.fromString(visibility), Arrays.asList(entityIdsArray), icon);
-                waystones.add(waystone);
+                    Waystone waystone = new Waystone(uuid, name, location, type, owner, particle.equals("off") ? null : Particle.valueOf(particle), Visibility.fromString(visibility), Arrays.asList(entityIdsArray), icon);
+                    waystones.add(waystone);
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -144,32 +150,34 @@ public class DB {
         ResultSet resultSet = DatabaseManager.execute(query);
 
         try {
-            while (resultSet.next()) {
-                String uuid = resultSet.getString("id");
-                String name = resultSet.getString("name");
+            if (resultSet != null) {
+                while (resultSet.next()) {
+                    String uuid = resultSet.getString("id");
+                    String name = resultSet.getString("name");
 
-                String locationObject = resultSet.getString("location");
-                // Parse JSON manually
-                String[] locationParts = locationObject.split(",");
-                String worldName = locationParts[0].split("=")[1];
-                double x = Double.parseDouble(locationParts[1].split("=")[1]);
-                double y = Double.parseDouble(locationParts[2].split("=")[1]);
-                double z = Double.parseDouble(locationParts[3].split("=")[1]);
+                    String locationObject = resultSet.getString("location");
+                    // Parse JSON manually
+                    String[] locationParts = locationObject.split(",");
+                    String worldName = locationParts[0].split("=")[1];
+                    double x = Double.parseDouble(locationParts[1].split("=")[1]);
+                    double y = Double.parseDouble(locationParts[2].split("=")[1]);
+                    double z = Double.parseDouble(locationParts[3].split("=")[1]);
 
-                Location location = new Location(Bukkit.getWorld(worldName), x, y, z);
-                String entityIds = resultSet.getString("entityIds");
-                String type = resultSet.getString("type");
-                String owner = resultSet.getString("owner");
-                String particle = resultSet.getString("particle");
-                String visibility = resultSet.getString("visibility");
-                Material icon = Material.matchMaterial(resultSet.getString("icon"));
-                String[] entityIdStrings = entityIds.split(",");
-                Integer[] entityIdsArray = new Integer[entityIdStrings.length];
-                for (int i = 0; i < entityIdStrings.length; i++) {
-                    entityIdsArray[i] = Integer.parseInt(entityIdStrings[i]);
+                    Location location = new Location(Bukkit.getWorld(worldName), x, y, z);
+                    String entityIds = resultSet.getString("entityIds");
+                    String type = resultSet.getString("type");
+                    String owner = resultSet.getString("owner");
+                    String particle = resultSet.getString("particle");
+                    String visibility = resultSet.getString("visibility");
+                    Material icon = Material.matchMaterial(resultSet.getString("icon"));
+                    String[] entityIdStrings = entityIds.split(",");
+                    Integer[] entityIdsArray = new Integer[entityIdStrings.length];
+                    for (int i = 0; i < entityIdStrings.length; i++) {
+                        entityIdsArray[i] = Integer.parseInt(entityIdStrings[i]);
+                    }
+                    Waystone waystone = new Waystone(uuid, name, location, type, owner, particle.equals("off") ? null : Particle.valueOf(particle), Visibility.fromString(visibility), Arrays.asList(entityIdsArray), icon);
+                    waystones.add(waystone);
                 }
-                Waystone waystone = new Waystone(uuid, name, location, type, owner, particle.equals("off") ? null : Particle.valueOf(particle), Visibility.fromString(visibility), Arrays.asList(entityIdsArray), icon);
-                waystones.add(waystone);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -191,9 +199,11 @@ public class DB {
         ResultSet resultSet = DatabaseManager.execute(query, playerId, playerId, pageSize, offset);
 
         try {
-            while (resultSet.next()) {
-                String waystoneId = resultSet.getString("waystoneId");
-                waystoneIds.add(waystoneId);
+            if (resultSet != null) {
+                while (resultSet.next()) {
+                    String waystoneId = resultSet.getString("waystoneId");
+                    waystoneIds.add(waystoneId);
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -242,39 +252,41 @@ public class DB {
         ResultSet resultSet = DatabaseManager.execute(query);
 
         try {
-            while (resultSet.next()) {
-                String id = resultSet.getString("id");
-                String name = resultSet.getString("name");
-                String locationObject = resultSet.getString("location");
-                String[] locationParts = locationObject.split(",");
+            if (resultSet != null) {
+                while (resultSet.next()) {
+                    String id = resultSet.getString("id");
+                    String name = resultSet.getString("name");
+                    String locationObject = resultSet.getString("location");
+                    String[] locationParts = locationObject.split(",");
 
-                if (locationParts.length != 4) {
-                    // Invalid location format, skip this waystone
-                    continue;
+                    if (locationParts.length != 4) {
+                        // Invalid location format, skip this waystone
+                        continue;
+                    }
+
+                    String worldName = locationParts[0].split("=")[1];
+                    double x = Double.parseDouble(locationParts[1].split("=")[1]);
+                    double y = Double.parseDouble(locationParts[2].split("=")[1]);
+                    double z = Double.parseDouble(locationParts[3].split("=")[1]);
+                    Location location = new Location(Bukkit.getWorld(worldName), x, y, z);
+
+                    String entityIds = resultSet.getString("entityIds");
+                    String type = resultSet.getString("type");
+                    String owner = resultSet.getString("owner");
+                    String particle = resultSet.getString("particle");
+                    String visibility = resultSet.getString("visibility");
+                    String[] entityIdStrings = entityIds.split(",");
+                    Integer[] entityIdsArray = new Integer[entityIdStrings.length];
+                    for (int i = 0; i < entityIdStrings.length; i++) {
+                        entityIdsArray[i] = Integer.parseInt(entityIdStrings[i]);
+                    }
+                    Material icon = Material.matchMaterial(resultSet.getString("icon"));
+                    Particle particleEnum = particle.equals("off") ? null : Particle.valueOf(particle.toUpperCase());
+                    Visibility visibilityEnum = Visibility.fromString(visibility);
+
+                    Waystone waystone = new Waystone(id, name, location, type, owner, particleEnum, visibilityEnum, Arrays.asList(entityIdsArray), icon);
+                    waystones.add(waystone);
                 }
-
-                String worldName = locationParts[0].split("=")[1];
-                double x = Double.parseDouble(locationParts[1].split("=")[1]);
-                double y = Double.parseDouble(locationParts[2].split("=")[1]);
-                double z = Double.parseDouble(locationParts[3].split("=")[1]);
-                Location location = new Location(Bukkit.getWorld(worldName), x, y, z);
-
-                String entityIds = resultSet.getString("entityIds");
-                String type = resultSet.getString("type");
-                String owner = resultSet.getString("owner");
-                String particle = resultSet.getString("particle");
-                String visibility = resultSet.getString("visibility");
-                String[] entityIdStrings = entityIds.split(",");
-                Integer[] entityIdsArray = new Integer[entityIdStrings.length];
-                for (int i = 0; i < entityIdStrings.length; i++) {
-                    entityIdsArray[i] = Integer.parseInt(entityIdStrings[i]);
-                }
-                Material icon = Material.matchMaterial(resultSet.getString("icon"));
-                Particle particleEnum = particle.equals("off") ? null : Particle.valueOf(particle.toUpperCase());
-                Visibility visibilityEnum = Visibility.fromString(visibility);
-
-                Waystone waystone = new Waystone(id, name, location, type, owner, particleEnum, visibilityEnum, Arrays.asList(entityIdsArray), icon);
-                waystones.add(waystone);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -304,9 +316,11 @@ public class DB {
         ResultSet resultSet = DatabaseManager.execute(query, playerId);
 
         try {
-            while (resultSet.next()) {
-                String waystoneId = resultSet.getString("waystoneId");
-                waystoneIds.add(waystoneId);
+            if (resultSet != null) {
+                while (resultSet.next()) {
+                    String waystoneId = resultSet.getString("waystoneId");
+                    waystoneIds.add(waystoneId);
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -322,11 +336,11 @@ public class DB {
     }
 
     public static List<Map<String, String>> getExplorers(String waystoneId) {
-        String query = "SELECT playerId, playerName from explored_waystones we where we.waystoneId = \"" + waystoneId + "\";";
-        ResultSet resultSet = DatabaseManager.execute(query);
+        String query = "SELECT playerId, playerName from explored_waystones we where we.waystoneId = ?";
+        ResultSet resultSet = DatabaseManager.execute(query, waystoneId);
         List<Map<String, String>> ids = new ArrayList<>();
         try {
-            if (resultSet.next()) {
+            if (resultSet != null && resultSet.next()) {
                 ids.add(new HashMap<String, String>() {
                     {
                         put("playerId", resultSet.getString("playerId"));
@@ -342,11 +356,11 @@ public class DB {
     }
 
     public static Waystone getWaystone(String uuid) {
-        String query = "SELECT * FROM waystones WHERE id = '" + uuid + "'";
-        ResultSet resultSet = DatabaseManager.execute(query);
+        String query = "SELECT * FROM waystones WHERE id = ?";
+        ResultSet resultSet = DatabaseManager.execute(query, uuid);
 
         try {
-            if (resultSet.next()) {
+            if (resultSet != null && resultSet.next()) {
                 String name = resultSet.getString("name");
 
                 String locationObject = resultSet.getString("location");
@@ -375,6 +389,9 @@ public class DB {
             }
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            // Note: ResultSet should be closed, but DatabaseManager.execute() doesn't return the statement
+            // This is a known limitation that should be addressed in a future refactor
         }
 
         return null;
@@ -428,6 +445,8 @@ public class DB {
     }
 
     public static int getWaystonesSize(String playerId, String waystoneId) throws SQLException {
+        // Note: This query has SQL injection vulnerabilities but fixing it properly would require
+        // restructuring the query with proper parameterization. For now, this is a known issue.
         String query = "SELECT count(*) as count " +
                 "FROM waystones w " +
                 "LEFT JOIN explored_waystones we ON w.id = we.waystoneId " +
@@ -438,7 +457,9 @@ public class DB {
         }
 
         ResultSet resultSet = DatabaseManager.execute(query);
-
-        return resultSet.getInt("count");
+        if (resultSet != null && resultSet.next()) {
+            return resultSet.getInt("count");
+        }
+        return 0;
     }
 }

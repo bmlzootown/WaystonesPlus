@@ -19,7 +19,7 @@ public class Rename implements SubCommand {
 
     @Override
     public void run(Player player, String[] args) {
-        if (!player.hasPermission("waystonesplus.command.rename") || !player.isOp()) {
+        if (player.hasPermission("waystonesplus.command.rename") || player.isOp()) {
             ItemStack waystoneItem = player.getItemInHand();
             if (waystoneItem.getType().equals(Material.PLAYER_HEAD) && ItemUtils.hasPersistentData(waystoneItem, "waystoneType")) {
                 if (args.length <= 1) {

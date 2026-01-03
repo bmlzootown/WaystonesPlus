@@ -61,43 +61,42 @@ public class WaystonePlace implements Listener {
                 player.sendMessage(ColoredText.getText(LangManager.noPermission));
                 event.getBlockPlaced().setType(Material.AIR);
                 event.setCancelled(true);
-
                 return;
             }
 
-            if (player.hasPermission("waystonesplus.placewaystone") || player.isOp()) {
-                // TODO Switch config.yml to waystonetypes.yml, add config.yml and define minimum waystone distance
-                if (!player.hasPermission("waystonesplus.cooldown.placewaystone")) {
-                    int playerCooldown = (int) WaystonesPlus.cooldownManager.getRemainingCooldown(player, "waystonePlace");
+            // Player has permission to place waystone, continue with placement logic
+            // TODO Switch config.yml to waystonetypes.yml, add config.yml and define minimum waystone distance
+            if (!player.hasPermission("waystonesplus.cooldown.placewaystone")) {
+                int playerCooldown = (int) WaystonesPlus.cooldownManager.getRemainingCooldown(player, "waystonePlace");
 
-                    if (playerCooldown != 0) {
-                        event.getBlockPlaced().setType(Material.AIR);
-                        event.getPlayer().sendMessage(ColoredText.getText(LangManager.wait.replaceAll("%cooldown%", String.valueOf(playerCooldown))));
+                if (playerCooldown != 0) {
+                    event.getBlockPlaced().setType(Material.AIR);
+                    event.getPlayer().sendMessage(ColoredText.getText(LangManager.wait.replaceAll("%cooldown%", String.valueOf(playerCooldown))));
 //                        event.getPlayer().sendMessage(ColoredText.getText("&7You need to wait " + playerCooldown + " second(s)"));
-                        event.setCancelled(true);
-
-                        return;
-                    } else {
-                        WaystonesPlus.cooldownManager.addPlayerCooldown(player, "waystonePlace", ConfigManager.waystonePlaceCooldown);
-                    }
-                }
-
-                Location temp = event.getBlockPlaced().getLocation();
-                Location placedBlockLocation = new Location(temp.getWorld(), temp.getX(), temp.getY() - 1, temp.getZ());
-
-                WaystoneType waystoneType = WaystoneMemory.getWaystoneTypes().get(waystoneTypeValue.toLowerCase());
-
-                if (waystoneType != null) {
-                    waystoneName = !waystoneName.equals("New Waystone") ? waystoneName : "New Waystone";
-                    addWaystoneAndNotify(!waystoneName.equals("New Waystone") ? waystoneName : "New Waystone", player, waystoneType, placedBlockLocation, Visibility.fromString(waystoneVisibilityValue), Particle.ENCHANT);
-                    if (ConfigManager.enableNotification) {
-                        player.sendTitle(ColoredText.getText(LangManager.newWaystoneTitle), ColoredText.getText(LangManager.newWaystoneSubtitle.replace("%waystone_name%", waystoneName)), 20, 40, 20);
-                    }
-
+                    event.setCancelled(true);
+                    return;
                 } else {
-                    player.sendMessage(Color.ORANGE + "Faulty block detected. (How did we get here?)");
+                    WaystonesPlus.cooldownManager.addPlayerCooldown(player, "waystonePlace", ConfigManager.waystonePlaceCooldown);
                 }
+            }
 
+            Location temp = event.getBlockPlaced().getLocation();
+            Location placedBlockLocation = new Location(temp.getWorld(), temp.getX(), temp.getY() - 1, temp.getZ());
+
+            WaystoneType waystoneType = WaystoneMemory.getWaystoneTypes().get(waystoneTypeValue.toLowerCase());
+
+            if (waystoneType != null) {
+                // Check if the name is the default help message, and if so, use a generic name
+                String defaultHelpName = ColoredText.getText(LangManager.newWaystoneName);
+                if (waystoneName.equals(defaultHelpName) || waystoneName.equals("New Waystone")) {
+                    waystoneName = "New Waystone";
+                }
+                addWaystoneAndNotify(waystoneName, player, waystoneType, placedBlockLocation, Visibility.fromString(waystoneVisibilityValue), Particle.ENCHANTMENT_TABLE);
+                if (ConfigManager.enableNotification) {
+                    player.sendTitle(ColoredText.getText(LangManager.newWaystoneTitle), ColoredText.getText(LangManager.newWaystoneSubtitle.replace("%waystone_name%", waystoneName)), 20, 40, 20);
+                }
+            } else {
+                player.sendMessage(Color.ORANGE + "Faulty block detected. (How did we get here?)");
             }
         }
 

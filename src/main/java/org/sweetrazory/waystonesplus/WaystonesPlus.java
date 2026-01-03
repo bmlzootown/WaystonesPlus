@@ -1,6 +1,7 @@
 package org.sweetrazory.waystonesplus;
 
 import org.bukkit.Bukkit;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.Listener;
@@ -20,6 +21,7 @@ public class WaystonesPlus extends JavaPlugin implements Listener {
     public static CooldownManager cooldownManager = new CooldownManager();
     public static ConfigManager configMemory = new ConfigManager();
     public static MenuManager menuManager = new MenuManager();
+    public static WaystoneMemory waystoneMemory;
     private static WaystonesPlus instance;
     private DatabaseManager databaseManager;
 
@@ -42,6 +44,9 @@ public class WaystonesPlus extends JavaPlugin implements Listener {
         databaseManager = new DatabaseManager();
         databaseManager.initializeDatabase();
         databaseManager.migrateWaystones();
+        
+        // Initialize waystone types - must be after ConfigManager.loadConfig()
+        waystoneMemory = new WaystoneMemory();
 
         String bukkitVersion = Bukkit.getVersion();
         if (!bukkitVersion.contains("1.19.4") && !bukkitVersion.contains("1.20") && !bukkitVersion.contains("1.21")) {
@@ -57,7 +62,12 @@ public class WaystonesPlus extends JavaPlugin implements Listener {
         List<String> commandAliases = Arrays.asList("waystones", "waystone", "wsp", "waystonesplus", "waystoneplus");
 
         for (String commandAlias : commandAliases) {
-            getCommand(commandAlias).setExecutor(new CommandManager());
+            PluginCommand command = getCommand(commandAlias);
+            if (command != null) {
+                command.setExecutor(new CommandManager());
+            } else {
+                getLogger().warning("Command '" + commandAlias + "' not found in plugin.yml! Skipping registration.");
+            }
         }
     }
 

@@ -7,6 +7,7 @@ import org.yaml.snakeyaml.Yaml;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Map;
 
 public class ConfigManager {
@@ -21,8 +22,7 @@ public class ConfigManager {
 
     public static void loadConfig() {
         File configFile = new File(WaystonesPlus.getInstance().getDataFolder().getAbsolutePath() + File.separator + "config.yml");
-        try {
-            FileInputStream fis = new FileInputStream(configFile);
+        try (FileInputStream fis = new FileInputStream(configFile)) {
             Yaml yaml = new Yaml();
             Map<String, Object> config = yaml.load(fis);
 
@@ -35,6 +35,10 @@ public class ConfigManager {
             waystonePlaceCooldown = (int) config.getOrDefault("waystone-place-cooldown", 30);
             waystoneTeleportCooldown = (int) config.getOrDefault("teleport-cooldown", 30);
         } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            WaystonesPlus.Logger().severe("Error reading config.yml file:");
+            e.printStackTrace();
             throw new RuntimeException(e);
         }
     }

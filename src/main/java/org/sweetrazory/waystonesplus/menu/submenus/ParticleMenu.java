@@ -75,10 +75,10 @@ public class ParticleMenu extends Menu {
                     waystone.setParticle(null);
                     break;
                 case "angryParticle":
-                    waystone.setParticle(Particle.ANGRY_VILLAGER);
+                    waystone.setParticle(Particle.VILLAGER_ANGRY);
                     break;
                 case "happyParticle":
-                    waystone.setParticle(Particle.HAPPY_VILLAGER);
+                    waystone.setParticle(Particle.VILLAGER_HAPPY);
                     break;
                 case "noteParticle":
                     waystone.setParticle(Particle.NOTE);
@@ -87,7 +87,7 @@ public class ParticleMenu extends Menu {
                     waystone.setParticle(Particle.PORTAL);
                     break;
                 case "enchantedParticle":
-                    waystone.setParticle(Particle.ENCHANT);
+                    waystone.setParticle(Particle.ENCHANTMENT_TABLE);
                     break;
                 case "heartsParticle":
                     waystone.setParticle(Particle.HEART);

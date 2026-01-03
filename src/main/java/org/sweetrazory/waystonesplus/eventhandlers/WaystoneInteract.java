@@ -55,7 +55,7 @@ public class WaystoneInteract {
     }
 
     private void spawnAndExplodeFirework(Location location) {
-        Firework firework = (Firework) location.getWorld().spawnEntity(location, EntityType.FIREWORK_ROCKET);
+        Firework firework = (Firework) location.getWorld().spawnEntity(location, EntityType.FIREWORK);
         FireworkEffect effect = FireworkEffect.builder()
                 .flicker(false)
                 .trail(true)
@@ -74,7 +74,7 @@ public class WaystoneInteract {
     }
 
     private FireworkMeta createFireworkMeta(FireworkEffect effect, Location location) {
-        FireworkMeta meta = ((Firework) location.getWorld().spawnEntity(location, EntityType.FIREWORK_ROCKET)).getFireworkMeta();
+        FireworkMeta meta = ((Firework) location.getWorld().spawnEntity(location, EntityType.FIREWORK)).getFireworkMeta();
         meta.addEffect(effect);
         meta.setPower(0);
         return meta;

@@ -109,7 +109,14 @@ public class TeleportMenu extends Menu {
 
     public void teleportToWaystone(Player player, Waystone waystone) {
         if (waystone != null) {
-            if (waystone.getVisibility() != null && waystone.getVisibility().equals(Visibility.PRIVATE) && !player.hasPermission("waystonesplus.teleport.private") && !player.isOp() && waystone.getOwnerId() != null && !waystone.getOwnerId().equals(player.getUniqueId().toString())) {
+            // Check if player has basic teleport permission
+            if (!player.hasPermission("waystonesplus.teleport") && !player.isOp()) {
+                player.sendMessage(ColoredText.getText(LangManager.noPermission));
+                return;
+            }
+            
+            if (waystone.getVisibility() != null && waystone.getVisibility().equals(Visibility.PRIVATE) && !player.hasPermission("waystonesplus.interact.private") && !player.isOp() && waystone.getOwnerId() != null && !waystone.getOwnerId().equals(player.getUniqueId().toString())) {
+                player.sendMessage(ColoredText.getText(LangManager.notOwner));
                 return;
             }
 

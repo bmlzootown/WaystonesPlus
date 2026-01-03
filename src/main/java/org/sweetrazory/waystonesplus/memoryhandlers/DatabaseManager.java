@@ -1,6 +1,5 @@
 package org.sweetrazory.waystonesplus.memoryhandlers;
 
-import org.apache.commons.io.FileUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -25,15 +24,17 @@ public class DatabaseManager {
     public static Connection connection;
 
     public static ResultSet execute(String query, Object... parameters) {
-        ResultSet resultSet = null;
+        // Note: Caller is responsible for closing the ResultSet and PreparedStatement
+        // This method should ideally be refactored to use try-with-resources, but that would require
+        // significant changes to all callers. For now, this is a known limitation.
         try {
             PreparedStatement statement = connection.prepareStatement(query);
             setParameters(statement, parameters);
-            resultSet = statement.executeQuery();
+            return statement.executeQuery();
         } catch (SQLException e) {
             e.printStackTrace();
+            return null;
         }
-        return resultSet;
     }
 
     private static void setParameters(PreparedStatement statement, Object... parameters) throws SQLException {
@@ -127,7 +128,7 @@ public class DatabaseManager {
 
         if (!waystones.isEmpty()) {
             try {
-                FileUtils.deleteDirectory(waystonesFolder);
+                deleteDirectory(waystonesFolder);
                 WaystonesPlus.Logger().info("Deleted 'waystones' folder.");
             } catch (IOException e) {
                 e.printStackTrace();
@@ -179,7 +180,7 @@ public class DatabaseManager {
                 entityIds.add(entityId);
             }
             // Create and return the Waystone object
-            Waystone waystone = new Waystone(id, name, new Location(Bukkit.getWorld(world), x, y, z), type, owner, Particle.ENCHANT, Visibility.fromString(visibility), entityIds, Material.LODESTONE);
+            Waystone waystone = new Waystone(id, name, new Location(Bukkit.getWorld(world), x, y, z), type, owner, Particle.ENCHANTMENT_TABLE, Visibility.fromString(visibility), entityIds, Material.LODESTONE);
             return waystone;
         } catch (IOException e) {
             e.printStackTrace();
@@ -229,6 +230,26 @@ public class DatabaseManager {
             }
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void deleteDirectory(File directory) throws IOException {
+        if (directory.exists()) {
+            File[] files = directory.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    if (file.isDirectory()) {
+                        deleteDirectory(file);
+                    } else {
+                        if (!file.delete()) {
+                            throw new IOException("Failed to delete file: " + file.getAbsolutePath());
+                        }
+                    }
+                }
+            }
+            if (!directory.delete()) {
+                throw new IOException("Failed to delete directory: " + directory.getAbsolutePath());
+            }
         }
     }
 }

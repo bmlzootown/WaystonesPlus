@@ -89,8 +89,7 @@ public class WaystoneMemory {
 
     public void loadWaystoneTypes() {
         File configFile = new File(WaystonesPlus.getInstance().getDataFolder().getAbsolutePath() + File.separator + "waystones.yml");
-        try {
-            FileInputStream fis = new FileInputStream(configFile);
+        try (FileInputStream fis = new FileInputStream(configFile)) {
             Yaml yaml = new Yaml();
 
             Map<String, Object> config = yaml.load(fis);
@@ -136,7 +135,7 @@ public class WaystoneMemory {
                 String textures = ((Map<String, String>) waystone.get("spawnItem")).get("textures");
                 ShapedRecipe recipe = null;
                 if (ConfigManager.enableCrafting) {
-                    ItemStack craftResult = new WaystoneSummonItem().getLodestoneHead(null, typeName, headOwnerId, textures, ConfigManager.defaultVisibility);
+                    ItemStack craftResult = WaystoneSummonItem.getLodestoneHead(null, typeName, headOwnerId, textures, ConfigManager.defaultVisibility);
                     NamespacedKey recipeName = new NamespacedKey(WaystonesPlus.getInstance(), typeName + "_recipe");
 
                     List<String> craftingList = (List<String>) waystone.get("crafting");
@@ -158,11 +157,16 @@ public class WaystoneMemory {
                             recipe.setIngredient(symbol, material);
                         }
                     }
-                    waystoneTypeMemory.put(typeName, new WaystoneType(typeName, blocks, blockDisplays, recipe, headOwnerId, textures));
                 }
+                // Always register waystone types, regardless of crafting being enabled
+                waystoneTypeMemory.put(typeName, new WaystoneType(typeName, blocks, blockDisplays, recipe, headOwnerId, textures));
             }
         } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
+            WaystonesPlus.Logger().severe("waystones.yml file not found! Waystone types cannot be loaded.");
+            e.printStackTrace();
+        } catch (Exception e) {
+            WaystonesPlus.Logger().severe("Error loading waystone types from waystones.yml:");
+            e.printStackTrace();
         }
     }
 

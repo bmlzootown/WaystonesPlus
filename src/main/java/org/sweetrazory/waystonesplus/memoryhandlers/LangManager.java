@@ -6,6 +6,7 @@ import org.yaml.snakeyaml.Yaml;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Map;
 
 public class LangManager {
@@ -42,8 +43,7 @@ public class LangManager {
 
     public static void loadConfig() {
         File configFile = new File(WaystonesPlus.getInstance().getDataFolder().getAbsolutePath() + File.separator + "localization.yml");
-        try {
-            FileInputStream fis = new FileInputStream(configFile);
+        try (FileInputStream fis = new FileInputStream(configFile)) {
             Yaml yaml = new Yaml();
             Map<String, Object> config = yaml.load(fis);
 
@@ -56,7 +56,7 @@ public class LangManager {
             reload = (String) config.getOrDefault("reload", "&cReloading WaystonesPlus's config and waystones.");
             notOwner = (String) config.getOrDefault("not-owner", "&cYou are not the owner of this Waystone.");
             wait = (String) config.getOrDefault("wait", "&cPlease wait a moment...");
-            newWaystoneName = (String) config.getOrDefault("new-waystone-name", "&aEnter a new name for the Waystone:");
+            newWaystoneName = (String) config.getOrDefault("new-waystone-name", "&7See /wsp help");
             explorersMenuTitle = (String) config.getOrDefault("explorers-menu-title", "&6Waystone Explorers Menu");
             selectorMenuTitle = (String) config.getOrDefault("selector-menu-title", "&6Waystone Option Selector");
             settingsMenuTitle = (String) config.getOrDefault("settings-menu-title", "&6Waystone Settings");
@@ -78,6 +78,10 @@ public class LangManager {
             newWaystoneTitle = (String) config.getOrDefault("new-waystone-title", "&8New Waystone:");
             newWaystoneSubtitle = (String) config.getOrDefault("new-waystone-subtitle", "&6%waystone_name%");
         } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            WaystonesPlus.Logger().severe("Error reading localization.yml file:");
+            e.printStackTrace();
             throw new RuntimeException(e);
         }
     }
