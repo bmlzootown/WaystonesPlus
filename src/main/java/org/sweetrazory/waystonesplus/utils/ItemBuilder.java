@@ -2,8 +2,10 @@ package org.sweetrazory.waystonesplus.utils;
 
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.sweetrazory.waystonesplus.WaystonesPlus;
@@ -26,6 +28,13 @@ public class ItemBuilder {
 
     public ItemBuilder lore(List<String> lore) {
         itemMeta.setLore(lore);
+        return this;
+    }
+
+    public ItemBuilder skullOwner(OfflinePlayer owner) {
+        if (itemMeta instanceof SkullMeta skullMeta && owner != null) {
+            skullMeta.setOwningPlayer(owner);
+        }
         return this;
     }
 

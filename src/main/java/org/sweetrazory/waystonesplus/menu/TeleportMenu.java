@@ -129,14 +129,34 @@ public class TeleportMenu extends Menu {
             setItem(39, MenuIcons.prevPageButton(player, page));
         }
 
-        if (waystone != null && (player.hasPermission("waystonesplus.menu.settings") || player.isOp())
-                && waystone.getOwnerId().equals(player.getUniqueId().toString())) {
-            setItem(40, MenuIcons.settingsButton(player, "settings"));
-        }
-
         if (waystone != null) {
+            setItem(36, buildOwnerSkull(waystone));
+
+            boolean isOwner = waystone.getOwnerId() != null
+                    && waystone.getOwnerId().equals(player.getUniqueId().toString());
+            boolean isAdmin = player.isOp() || player.hasPermission("waystonesplus.admin");
+            boolean canOpenSettings = player.hasPermission("waystonesplus.menu.settings") || isAdmin;
+            if (canOpenSettings && (isOwner || isAdmin)) {
+                List<String> settingsLore = null;
+                if (!isOwner && isAdmin) {
+                    settingsLore = List.of(ColoredText.getText(
+                            LangManager.teleportSettingsEditingOther.replace("%owner%", resolveOwnerName(waystone.getOwnerId()))
+                    ));
+                }
+                setItem(40, MenuIcons.settingsButton(player, "settings", settingsLore));
+            }
+
             setItem(44, buildInfoItem(player, waystone));
         }
+    }
+
+    private ItemStack buildOwnerSkull(Waystone waystone) {
+        String ownerName = resolveOwnerName(waystone.getOwnerId());
+        org.bukkit.OfflinePlayer owner = resolveOwner(waystone.getOwnerId());
+        return new ItemBuilder(Material.PLAYER_HEAD)
+                .skullOwner(owner)
+                .displayName(ColoredText.getText(LangManager.teleportOwnerSkullName.replace("%owner%", ownerName)))
+                .build();
     }
 
     private ItemStack buildInfoItem(Player player, Waystone waystone) {
@@ -170,15 +190,22 @@ public class TeleportMenu extends Menu {
     }
 
     private static String resolveOwnerName(String ownerId) {
+        org.bukkit.OfflinePlayer offline = resolveOwner(ownerId);
+        if (offline == null) {
+            return ownerId != null && !ownerId.isEmpty() ? ownerId : "Unknown";
+        }
+        String name = offline.getName();
+        return name != null ? name : ownerId;
+    }
+
+    private static org.bukkit.OfflinePlayer resolveOwner(String ownerId) {
         if (ownerId == null || ownerId.isEmpty()) {
-            return "Unknown";
+            return null;
         }
         try {
-            org.bukkit.OfflinePlayer offline = Bukkit.getOfflinePlayer(java.util.UUID.fromString(ownerId));
-            String name = offline.getName();
-            return name != null ? name : ownerId;
+            return Bukkit.getOfflinePlayer(java.util.UUID.fromString(ownerId));
         } catch (IllegalArgumentException e) {
-            return ownerId;
+            return null;
         }
     }
 

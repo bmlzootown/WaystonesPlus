@@ -62,6 +62,8 @@ public class LangManager {
     public static String teleportInfoVisibility;
     public static String teleportInfoWorld;
     public static String teleportInfoCoords;
+    public static String teleportOwnerSkullName;
+    public static String teleportSettingsEditingOther;
     public static String resourcePackDisabled;
     public static String resourcePackUnavailable;
     public static String resourcePackAlreadyLoaded;
@@ -127,6 +129,11 @@ public class LangManager {
             teleportInfoVisibility = (String) config.getOrDefault("teleport-info-visibility", "&7Visibility: &f%visibility%");
             teleportInfoWorld = (String) config.getOrDefault("teleport-info-world", "&7World: &f%world%");
             teleportInfoCoords = (String) config.getOrDefault("teleport-info-coords", "&7Location: &f%x%, %y%, %z%");
+            teleportOwnerSkullName = (String) config.getOrDefault("teleport-owner-skull-name", "&6%owner%");
+            teleportSettingsEditingOther = (String) config.getOrDefault(
+                    "teleport-settings-editing-other",
+                    "&cEditing &e%owner%&c's waystone"
+            );
             resourcePackDisabled = (String) config.getOrDefault("resource-pack-disabled", "&cThe WaystonesPlus resource pack is disabled on this server.");
             resourcePackUnavailable = (String) config.getOrDefault("resource-pack-unavailable", "&cThe resource pack is not available right now. Try again later.");
             resourcePackAlreadyLoaded = (String) config.getOrDefault("resource-pack-already-loaded", "&aYou already have the WaystonesPlus menu icons loaded.");

@@ -30,12 +30,19 @@ public final class MenuIcons {
     }
 
     public static ItemStack settingsButton(Player player, String action) {
+        return settingsButton(player, action, null);
+    }
+
+    public static ItemStack settingsButton(Player player, String action, List<String> lore) {
         boolean usePack = ResourcePackManager.hasPack(player);
-        return new ItemBuilder(usePack ? Material.PAPER : Material.BARRIER)
+        ItemBuilder builder = new ItemBuilder(usePack ? Material.PAPER : Material.BARRIER)
                 .displayName(ColoredText.getText(LangManager.settingsMenuTitle))
                 .itemModel(usePack ? model("settings") : null)
-                .persistentData("action", action)
-                .build();
+                .persistentData("action", action);
+        if (lore != null && !lore.isEmpty()) {
+            builder.lore(lore);
+        }
+        return builder.build();
     }
 
     public static ItemStack infoButton(Player player, List<String> lore) {
