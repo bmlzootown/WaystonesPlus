@@ -32,6 +32,10 @@ public class WaystoneInteract {
             List<MetadataValue> blockMeta = e.getClickedBlock().getMetadata("waystoneId");
             if (!blockMeta.isEmpty() && (e.getPlayer().hasPermission("waystonesplus.interact") || e.getPlayer().isOp())) {
                 waystone = DB.getWaystone(blockMeta.get(0).asString());
+                if (waystone == null) {
+                    return null;
+                }
+
                 Visibility waystoneVisibility = waystone.getVisibility();
                 if (waystoneVisibility.equals(Visibility.PRIVATE) && !e.getPlayer().hasPermission("waystonesplus.interact.private") && !waystone.getOwnerId().equals(e.getPlayer().getUniqueId().toString()) && !e.getPlayer().isOp()
                 ) {
@@ -40,6 +44,13 @@ public class WaystoneInteract {
                 }
 
                 List<String> exploredIds = DB.getExploredWaystoneIds(e.getPlayer().getUniqueId().toString(), null, null);
+
+                // Track GLOBAL visits for the explorers list, but do not gate access on discovery.
+                if (waystoneVisibility.equals(Visibility.GLOBAL)
+                        && !exploredIds.contains(waystone.getId())
+                        && !waystone.getOwnerId().equals(e.getPlayer().getUniqueId().toString())) {
+                    DB.insertOrUpdateExploredWaystone(e.getPlayer().getName(), e.getPlayer().getUniqueId().toString(), waystone.getId());
+                }
 
                 if (waystoneVisibility.equals(Visibility.PUBLIC) && !exploredIds.contains(waystone.getId()) && !waystone.getOwnerId().equals(e.getPlayer().getUniqueId().toString())) {
                     e.getPlayer().sendTitle(ColoredText.getText(waystone.getName()), ColoredText.getText("&6is now Explored!"));
@@ -55,7 +66,7 @@ public class WaystoneInteract {
     }
 
     private void spawnAndExplodeFirework(Location location) {
-        Firework firework = (Firework) location.getWorld().spawnEntity(location, EntityType.FIREWORK);
+        Firework firework = (Firework) location.getWorld().spawnEntity(location, EntityType.FIREWORK_ROCKET);
         FireworkEffect effect = FireworkEffect.builder()
                 .flicker(false)
                 .trail(true)
@@ -74,7 +85,7 @@ public class WaystoneInteract {
     }
 
     private FireworkMeta createFireworkMeta(FireworkEffect effect, Location location) {
-        FireworkMeta meta = ((Firework) location.getWorld().spawnEntity(location, EntityType.FIREWORK)).getFireworkMeta();
+        FireworkMeta meta = ((Firework) location.getWorld().spawnEntity(location, EntityType.FIREWORK_ROCKET)).getFireworkMeta();
         meta.addEffect(effect);
         meta.setPower(0);
         return meta;

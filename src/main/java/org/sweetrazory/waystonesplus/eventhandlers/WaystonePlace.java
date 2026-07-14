@@ -91,7 +91,7 @@ public class WaystonePlace implements Listener {
                 if (waystoneName.equals(defaultHelpName) || waystoneName.equals("New Waystone")) {
                     waystoneName = "New Waystone";
                 }
-                addWaystoneAndNotify(waystoneName, player, waystoneType, placedBlockLocation, Visibility.fromString(waystoneVisibilityValue), Particle.ENCHANTMENT_TABLE);
+                addWaystoneAndNotify(waystoneName, player, waystoneType, placedBlockLocation, Visibility.fromString(waystoneVisibilityValue), Particle.ENCHANT);
                 if (ConfigManager.enableNotification) {
                     player.sendTitle(ColoredText.getText(LangManager.newWaystoneTitle), ColoredText.getText(LangManager.newWaystoneSubtitle.replace("%waystone_name%", waystoneName)), 20, 40, 20);
                 }
@@ -104,9 +104,37 @@ public class WaystonePlace implements Listener {
     }
 
     private void addWaystoneAndNotify(String name, Player player, WaystoneType waystoneType, Location location, Visibility visibility, Particle particle) {
-        Waystone waystone = new Waystone(UUID.randomUUID().toString(), name, location, waystoneType.getTypeName(), player.getUniqueId().toString(), particle, visibility, (List) null, ((BlockType) waystoneType.getBlocks().get(1)).getMaterial());
+        // Determine cardinal direction player is facing
+        float playerYaw = player.getLocation().getYaw();
+        String playerFacingDirection = DB.yawToCardinalDirection(playerYaw);
+        
+        // Get opposite direction - if player faces N, teleport them S of waystone (so they face N towards waystone)
+        String teleportDirection = getOppositeDirection(playerFacingDirection);
+        
+        Waystone waystone = new Waystone(
+            UUID.randomUUID().toString(), 
+            name, 
+            location, 
+            waystoneType.getTypeName(), 
+            player.getUniqueId().toString(), 
+            particle, 
+            visibility, 
+            (List) null, 
+            ((BlockType) waystoneType.getBlocks().get(1)).getMaterial(),
+            teleportDirection
+        );
         waystone.createWaystone();
         DB.insertWaystone(waystone);
+    }
+    
+    private String getOppositeDirection(String direction) {
+        switch (direction.toUpperCase()) {
+            case "N": return "S";
+            case "E": return "W";
+            case "S": return "N";
+            case "W": return "E";
+            default: return "N";
+        }
     }
 
 }

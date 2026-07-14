@@ -60,6 +60,7 @@ public class DatabaseManager {
         try {
             String deleteWaystoneQuery = "DELETE FROM waystones WHERE id = ?";
             String deleteExploredWaystonesQuery = "DELETE FROM explored_waystones WHERE waystoneId = ?";
+            String deleteFavoriteWaystonesQuery = "DELETE FROM favorite_waystones WHERE waystoneId = ?";
 
             PreparedStatement deleteWaystoneStatement = connection.prepareStatement(deleteWaystoneQuery);
             deleteWaystoneStatement.setString(1, waystoneId);
@@ -70,6 +71,11 @@ public class DatabaseManager {
             deleteExploredWaystonesStatement.setString(1, waystoneId);
             deleteExploredWaystonesStatement.executeUpdate();
             deleteExploredWaystonesStatement.close();
+
+            PreparedStatement deleteFavoriteWaystonesStatement = connection.prepareStatement(deleteFavoriteWaystonesQuery);
+            deleteFavoriteWaystonesStatement.setString(1, waystoneId);
+            deleteFavoriteWaystonesStatement.executeUpdate();
+            deleteFavoriteWaystonesStatement.close();
 
             WaystonesPlus.Logger().info("Waystone removed successfully.");
         } catch (SQLException e) {
@@ -98,9 +104,15 @@ public class DatabaseManager {
                 connection = DriverManager.getConnection("jdbc:sqlite:" + databaseFile.getAbsolutePath());
                 createWaystonesTable();
                 createExploredWaystonesTable();
+                createFavoriteWaystonesTable();
+                createPlayerPreferencesTable();
+                migrateTeleportLocationColumns();
                 WaystonesPlus.Logger().info("Database created and initialized successfully.");
             } else {
                 connection = DriverManager.getConnection("jdbc:sqlite:" + databaseFile.getAbsolutePath());
+                createFavoriteWaystonesTable();
+                createPlayerPreferencesTable();
+                migrateTeleportLocationColumns();
                 WaystonesPlus.Logger().info("Database initialized successfully.");
             }
         } catch (ClassNotFoundException | SQLException e) {
@@ -180,7 +192,9 @@ public class DatabaseManager {
                 entityIds.add(entityId);
             }
             // Create and return the Waystone object
-            Waystone waystone = new Waystone(id, name, new Location(Bukkit.getWorld(world), x, y, z), type, owner, Particle.ENCHANTMENT_TABLE, Visibility.fromString(visibility), entityIds, Material.LODESTONE);
+            // Default teleport direction for migrated waystones (default to North)
+            Location waystoneLocation = new Location(Bukkit.getWorld(world), x, y, z);
+            Waystone waystone = new Waystone(id, name, waystoneLocation, type, owner, Particle.ENCHANT, Visibility.fromString(visibility), entityIds, Material.LODESTONE, "N");
             return waystone;
         } catch (IOException e) {
             e.printStackTrace();
@@ -199,7 +213,8 @@ public class DatabaseManager {
                 "owner TEXT NOT NULL, " +
                 "icon TEXT NOT NULL, " +
                 "visibility TEXT NOT NULL, " +
-                "particle TEXT " +
+                "particle TEXT, " +
+                "teleportDirection TEXT DEFAULT 'N'" +
                 ")";
 
         try {
@@ -218,6 +233,115 @@ public class DatabaseManager {
             statement.execute(createTableQuery);
             statement.close();
         } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void createFavoriteWaystonesTable() {
+        String createTableQuery = "CREATE TABLE IF NOT EXISTS favorite_waystones (" +
+                "playerId TEXT NOT NULL, " +
+                "waystoneId TEXT NOT NULL, " +
+                "PRIMARY KEY (playerId, waystoneId)" +
+                ")";
+        try {
+            Statement statement = connection.createStatement();
+            statement.execute(createTableQuery);
+            statement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void createPlayerPreferencesTable() {
+        String createTableQuery = "CREATE TABLE IF NOT EXISTS player_preferences (" +
+                "playerId TEXT PRIMARY KEY, " +
+                "defaultTeleportFilter TEXT NOT NULL DEFAULT 'ALL'" +
+                ")";
+        try {
+            Statement statement = connection.createStatement();
+            statement.execute(createTableQuery);
+            statement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void migrateTeleportLocationColumns() {
+        try {
+            // Check if columns exist
+            Statement checkStatement = connection.createStatement();
+            ResultSet columns = checkStatement.executeQuery("PRAGMA table_info(waystones)");
+            boolean hasTeleportDirection = false;
+            boolean hasTeleportLocation = false;
+            
+            while (columns.next()) {
+                String columnName = columns.getString("name");
+                if ("teleportDirection".equals(columnName)) {
+                    hasTeleportDirection = true;
+                }
+                if ("teleportLocation".equals(columnName)) {
+                    hasTeleportLocation = true;
+                }
+            }
+            columns.close();
+            checkStatement.close();
+            
+            // Add teleportDirection column if it doesn't exist
+            if (!hasTeleportDirection) {
+                Statement alterStatement = connection.createStatement();
+                alterStatement.execute("ALTER TABLE waystones ADD COLUMN teleportDirection TEXT DEFAULT 'N'");
+                alterStatement.close();
+                WaystonesPlus.Logger().info("Added teleportDirection column to waystones table.");
+            }
+            
+            // Migrate old teleportLocation/teleportYaw data to teleportDirection
+            if (hasTeleportLocation && !hasTeleportDirection) {
+                Statement updateStatement = connection.createStatement();
+                ResultSet waystones = updateStatement.executeQuery("SELECT id, location, teleportLocation FROM waystones WHERE teleportLocation IS NOT NULL");
+                
+                PreparedStatement updateDirection = connection.prepareStatement("UPDATE waystones SET teleportDirection = ? WHERE id = ?");
+                
+                while (waystones.next()) {
+                    String id = waystones.getString("id");
+                    String locationString = waystones.getString("location");
+                    String teleportLocationString = waystones.getString("teleportLocation");
+                    
+                    // Parse waystone location
+                    String[] locationParts = locationString.split(",");
+                    if (locationParts.length == 4) {
+                        double waystoneX = Double.parseDouble(locationParts[1].split("=")[1]);
+                        double waystoneZ = Double.parseDouble(locationParts[2].split("=")[1]);
+                        double waystoneCenterX = waystoneX + 0.5;
+                        double waystoneCenterZ = waystoneZ + 0.5;
+                        
+                        // Parse teleport location
+                        String[] teleportParts = teleportLocationString.split(",");
+                        if (teleportParts.length >= 4) {
+                            double teleportX = Double.parseDouble(teleportParts[1].split("=")[1]);
+                            double teleportZ = Double.parseDouble(teleportParts[2].split("=")[1]);
+                            
+                            // Convert to cardinal direction
+                            String direction = DB.positionToCardinalDirection(teleportX, teleportZ, waystoneCenterX, waystoneCenterZ);
+                            updateDirection.setString(1, direction);
+                            updateDirection.setString(2, id);
+                            updateDirection.executeUpdate();
+                        }
+                    }
+                }
+                
+                waystones.close();
+                updateStatement.close();
+                updateDirection.close();
+                WaystonesPlus.Logger().info("Migrated teleport locations to cardinal directions.");
+            } else if (!hasTeleportLocation && !hasTeleportDirection) {
+                // No old data, just set default direction for all waystones
+                Statement updateStatement = connection.createStatement();
+                updateStatement.execute("UPDATE waystones SET teleportDirection = 'N' WHERE teleportDirection IS NULL");
+                updateStatement.close();
+                WaystonesPlus.Logger().info("Set default teleport direction for existing waystones.");
+            }
+        } catch (SQLException e) {
+            WaystonesPlus.Logger().warning("Error migrating teleport location columns: " + e.getMessage());
             e.printStackTrace();
         }
     }

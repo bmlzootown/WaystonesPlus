@@ -30,8 +30,13 @@ public class Waystone {
     private Visibility visibility;
     private List<Integer> entities;
     private Material icon;
+    private String teleportDirection; // Cardinal direction (N, E, S, W) - player teleports 2 blocks away in this direction, facing waystone
 
     public Waystone(String id, String name, Location location, String type, String ownerId, Particle particle, Visibility visibility, @Nullable List<Integer> entities, Material icon) {
+        this(id, name, location, type, ownerId, particle, visibility, entities, icon, "N");
+    }
+
+    public Waystone(String id, String name, Location location, String type, String ownerId, Particle particle, Visibility visibility, @Nullable List<Integer> entities, Material icon, String teleportDirection) {
         this.id = id;
         this.name = name;
         this.location = location;
@@ -41,6 +46,7 @@ public class Waystone {
         this.visibility = visibility;
         this.entities = entities;
         this.icon = icon;
+        this.teleportDirection = teleportDirection != null ? teleportDirection : "N";
     }
 
     public Material getIcon() {
@@ -189,5 +195,13 @@ public class Waystone {
 
     public void setEntities(List<Integer> entities) {
         this.entities = entities;
+    }
+
+    public String getTeleportDirection() {
+        return teleportDirection != null ? teleportDirection : "N";
+    }
+
+    public void setTeleportDirection(String teleportDirection) {
+        this.teleportDirection = teleportDirection != null ? teleportDirection : "N";
     }
 }
