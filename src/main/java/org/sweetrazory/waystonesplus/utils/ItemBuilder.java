@@ -36,6 +36,19 @@ public class ItemBuilder {
         return this;
     }
 
+    /** Adds the enchantment glint without applying a real enchant. */
+    public ItemBuilder glow(boolean enabled) {
+        itemMeta.setEnchantmentGlintOverride(enabled ? Boolean.TRUE : null);
+        return this;
+    }
+
+    public ItemBuilder itemModel(NamespacedKey key) {
+        if (key != null) {
+            itemMeta.setItemModel(key);
+        }
+        return this;
+    }
+
     public ItemStack build() {
         itemStack.setItemMeta(itemMeta);
         return itemStack;

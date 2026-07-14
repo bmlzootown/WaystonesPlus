@@ -19,6 +19,10 @@ public class ConfigManager {
     public static int teleportCountdown;
     public static int waystonePlaceCooldown;
     public static int waystoneTeleportCooldown;
+    public static boolean enableResourcePack;
+    public static boolean resourcePackRequired;
+    public static int resourcePackPort;
+    public static String resourcePackHost;
 
     public static void loadConfig() {
         File configFile = new File(WaystonesPlus.getInstance().getDataFolder().getAbsolutePath() + File.separator + "config.yml");
@@ -34,6 +38,11 @@ public class ConfigManager {
             teleportCountdown = (int) config.getOrDefault("teleport-countdown", 3);
             waystonePlaceCooldown = (int) config.getOrDefault("waystone-place-cooldown", 30);
             waystoneTeleportCooldown = (int) config.getOrDefault("teleport-cooldown", 30);
+            enableResourcePack = (boolean) config.getOrDefault("enable-resource-pack", true);
+            resourcePackRequired = (boolean) config.getOrDefault("resource-pack-required", false);
+            resourcePackPort = (int) config.getOrDefault("resource-pack-port", 8163);
+            Object host = config.getOrDefault("resource-pack-host", "");
+            resourcePackHost = host == null ? "" : String.valueOf(host);
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {

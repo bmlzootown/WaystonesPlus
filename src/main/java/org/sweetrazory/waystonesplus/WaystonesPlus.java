@@ -4,12 +4,14 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.sweetrazory.waystonesplus.memoryhandlers.*;
 import org.sweetrazory.waystonesplus.menu.MenuListener;
 import org.sweetrazory.waystonesplus.menu.MenuManager;
 import org.sweetrazory.waystonesplus.utils.ColoredText;
+import org.sweetrazory.waystonesplus.utils.ResourcePackManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,6 +26,7 @@ public class WaystonesPlus extends JavaPlugin implements Listener {
     public static WaystoneMemory waystoneMemory;
     private static WaystonesPlus instance;
     private DatabaseManager databaseManager;
+    private ResourcePackManager resourcePackManager;
 
     public static WaystonesPlus getInstance() {
         return instance;
@@ -49,7 +52,8 @@ public class WaystonesPlus extends JavaPlugin implements Listener {
         waystoneMemory = new WaystoneMemory();
 
         String bukkitVersion = Bukkit.getVersion();
-        if (!bukkitVersion.contains("1.19.4") && !bukkitVersion.contains("1.20") && !bukkitVersion.contains("1.21")) {
+        if (!bukkitVersion.contains("1.19.4") && !bukkitVersion.contains("1.20")
+                && !bukkitVersion.contains("1.21") && !bukkitVersion.contains("26.")) {
             getLogger().warning(ColoredText.getText(LangManager.versionWarning));
             getServer().getPluginManager().disablePlugin(this);
             return;
@@ -58,6 +62,16 @@ public class WaystonesPlus extends JavaPlugin implements Listener {
         EventController eventController = new EventController();
         getServer().getPluginManager().registerEvents(eventController, this);
         getServer().getPluginManager().registerEvents(new MenuListener(menuManager), this);
+
+        resourcePackManager = new ResourcePackManager();
+        resourcePackManager.enable();
+
+        // Unlock waystone recipes for all online players
+        if (ConfigManager.enableCrafting) {
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                EventController.unlockWaystoneRecipes(player);
+            }
+        }
 
         List<String> commandAliases = Arrays.asList("waystones", "waystone", "wsp", "waystonesplus", "waystoneplus");
 
@@ -73,6 +87,9 @@ public class WaystonesPlus extends JavaPlugin implements Listener {
 
     @Override
     public void onDisable() {
+        if (resourcePackManager != null) {
+            resourcePackManager.disable();
+        }
         if (databaseManager != null) {
             databaseManager.closeConnection();
         }

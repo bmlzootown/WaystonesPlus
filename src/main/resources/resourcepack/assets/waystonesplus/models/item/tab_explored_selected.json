@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "waystonesplus:item/tab_explored_selected"
+  }
+}

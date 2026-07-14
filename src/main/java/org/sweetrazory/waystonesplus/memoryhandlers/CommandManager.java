@@ -7,7 +7,13 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
-import org.sweetrazory.waystonesplus.commands.subcommands.*;
+import org.sweetrazory.waystonesplus.commands.subcommands.Get;
+import org.sweetrazory.waystonesplus.commands.subcommands.Help;
+import org.sweetrazory.waystonesplus.commands.subcommands.ListAll;
+import org.sweetrazory.waystonesplus.commands.subcommands.Reload;
+import org.sweetrazory.waystonesplus.commands.subcommands.Rename;
+import org.sweetrazory.waystonesplus.commands.subcommands.ResourcePack;
+import org.sweetrazory.waystonesplus.commands.subcommands.SetVisibility;
 import org.sweetrazory.waystonesplus.enums.Visibility;
 import org.sweetrazory.waystonesplus.utils.SubCommand;
 
@@ -24,6 +30,9 @@ public class CommandManager implements CommandExecutor, TabCompleter {
         subCommands.add(new Rename());
         subCommands.add(new Reload());
         subCommands.add(new SetVisibility());
+        subCommands.add(new ListAll());
+        subCommands.add(new ResourcePack());
+        subCommands.add(new ResourcePack("pack"));
     }
 
     @Override
@@ -71,6 +80,11 @@ public class CommandManager implements CommandExecutor, TabCompleter {
                 if (player.hasPermission("waystonesplus.command.reload") || player.isOp()) {
                     commands.add("reload");
                 }
+                if (player.hasPermission("waystonesplus.command.list") || player.isOp()) {
+                    commands.add("list");
+                }
+                commands.add("resourcepack");
+                commands.add("pack");
                 commands.add("help");
                 StringUtil.copyPartialMatches(args[0], commands, completions);
             } else if (args.length == 2) {
@@ -90,6 +104,11 @@ public class CommandManager implements CommandExecutor, TabCompleter {
                 if (args[0].equalsIgnoreCase("rename")) {
                     if (player.hasPermission("waystonesplus.command.rename") || player.isOp()) {
                         commands.add("&6Example");
+                    }
+                }
+                if (args[0].equalsIgnoreCase("list")) {
+                    if (player.hasPermission("waystonesplus.command.list") || player.isOp()) {
+                        commands.add("0");
                     }
                 }
                 StringUtil.copyPartialMatches(args[1], commands, completions);

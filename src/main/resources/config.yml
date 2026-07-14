@@ -28,5 +28,18 @@ teleport-countdown: 3
 # Sets how frequently a player can put down a Waystone
 waystone-place-cooldown: 30
 
-# Sets how frequently a player can put down a Waystone
+# Sets how frequently a player can teleport between Waystones
 teleport-cooldown: 30
+
+# Offer the bundled WaystonesPlus UI resource pack (custom teleport tab icons)
+enable-resource-pack: true
+
+# If true, clients must accept the pack (kick if declined). Keep false for softer UX.
+resource-pack-required: false
+
+# Local HTTP port used to serve the pack zip to clients
+resource-pack-port: 8163
+
+# Host/IP clients should download from. Leave empty to use server-ip, or 127.0.0.1 for local testing.
+# For remote players, set this to your public server IP or domain.
+resource-pack-host: ""

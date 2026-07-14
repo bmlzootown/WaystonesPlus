@@ -53,6 +53,11 @@ public class Help implements SubCommand {
         helpLines.add(ColoredText.getText("&6/wsp help"));
         helpLines.add(ColoredText.getText("&7  Shows this help message."));
         helpLines.add("");
+
+        helpLines.add(ColoredText.getText("&6/wsp resourcepack &7(or &6/wsp pack&7)"));
+        helpLines.add(ColoredText.getText("&7  Re-prompts you for the WaystonesPlus menu icon pack"));
+        helpLines.add(ColoredText.getText("&7  (useful if you previously declined it)."));
+        helpLines.add("");
         
         // General usage instructions
         helpLines.add(ColoredText.getText("&e--- Usage Guide ---"));
