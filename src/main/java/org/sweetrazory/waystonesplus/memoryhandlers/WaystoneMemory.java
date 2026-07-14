@@ -13,6 +13,7 @@ import org.sweetrazory.waystonesplus.types.BlockDisplayType;
 import org.sweetrazory.waystonesplus.types.BlockType;
 import org.sweetrazory.waystonesplus.types.WaystoneType;
 import org.sweetrazory.waystonesplus.utils.DB;
+import org.sweetrazory.waystonesplus.utils.Particles;
 import org.sweetrazory.waystonesplus.waystone.Waystone;
 import org.yaml.snakeyaml.Yaml;
 
@@ -59,7 +60,7 @@ public class WaystoneMemory {
         if (particle != null) {
             for (Player player : Bukkit.getOnlinePlayers()) {
                 if (player.getLocation().getWorld().equals(location.getWorld()) && player.getLocation().distance(location) <= Bukkit.getServer().getViewDistance() * 16) {
-                    player.spawnParticle(particle, location, 1, 0.5, 0.5, 0.5);
+                    Particles.spawn(player, location, particle);
                 }
             }
         }

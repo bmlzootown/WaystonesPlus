@@ -16,4 +16,8 @@ public class Version {
     public static Boolean isMC21() {
         return bukkitVersion.contains("1.21");
     }
+
+    public static Boolean isMC26() {
+        return bukkitVersion.contains("26.");
+    }
 }

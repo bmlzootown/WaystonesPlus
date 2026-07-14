@@ -1,7 +1,7 @@
 name: WaystonesPlus
 version: ${project.version}
 main: org.sweetrazory.waystonesplus.WaystonesPlus
-api-version: "1.20"
+api-version: "26.1.2"
 author: SweetRazory, bmlzootown
 permissions:
   waystonesplus.*:
@@ -35,6 +35,7 @@ permissions:
       waystonesplus.command.visibility: true
       waystonesplus.command.rename: true
       waystonesplus.command.reload: true
+      waystonesplus.command.list: true
   waystonesplus.admin:
     description: Administrative overrides and bypasses
     default: false
@@ -60,6 +61,12 @@ permissions:
   waystonesplus.command.reload:
     description: Gives access to the /waystonesplus or /wsp reload command
     default: false
+  waystonesplus.command.list:
+    description: Opens the admin GUI listing all waystones (name, creator, visibility)
+    default: false
+  waystonesplus.command.resourcepack:
+    description: Re-prompts for the WaystonesPlus UI resource pack
+    default: true
   waystonesplus.breakwaystone:
     description: Gives access for the player to break a Waystone
     default: false
@@ -81,8 +88,14 @@ permissions:
   waystonesplus.placewaystone:
     description: Gives access for the player to place a waystone
     default: false
+  waystonesplus.menu.rename:
+    description: The player can now rename waystones from the settings menu
+    default: false
   waystonesplus.menu.visibility:
     description: The player can now change the visibility settings
+    default: false
+  waystonesplus.menu.visibility.global:
+    description: The player can now set waystone visibility to GLOBAL
     default: false
   waystonesplus.menu.particle:
     description: The player can now change the particle settings
