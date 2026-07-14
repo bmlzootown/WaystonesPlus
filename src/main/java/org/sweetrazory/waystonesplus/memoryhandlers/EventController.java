@@ -8,10 +8,11 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.inventory.PrepareAnvilEvent;
-import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.world.LootGenerateEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.ShapedRecipe;
 import org.sweetrazory.waystonesplus.enums.Visibility;
 import org.sweetrazory.waystonesplus.eventhandlers.*;
 import org.sweetrazory.waystonesplus.items.WaystoneSummonItem;
@@ -23,6 +24,7 @@ import org.sweetrazory.waystonesplus.waystone.Waystone;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 public class EventController implements Listener {
@@ -43,8 +45,7 @@ public class EventController implements Listener {
         Waystone waystone = waystoneInteract.getInteractedWaystone(event);
 
         if (waystone != null) {
-            TeleportMenu teleportMenu = new TeleportMenu(0);
-            MenuManager.openMenu(player, teleportMenu, waystone);
+            MenuManager.openMenu(player, TeleportMenu.forPlayer(player), waystone);
         }
     }
 
@@ -80,5 +81,40 @@ public class EventController implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onWaystoneBreak(BlockBreakEvent e) {
         new WaystoneBreak(e);
+    }
+
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        // Unlock waystone recipes for the player when they join
+        // Use a small delay to ensure player is fully loaded
+        org.bukkit.scheduler.BukkitRunnable task = new org.bukkit.scheduler.BukkitRunnable() {
+            @Override
+            public void run() {
+                unlockWaystoneRecipes(event.getPlayer());
+            }
+        };
+        task.runTaskLater(org.sweetrazory.waystonesplus.WaystonesPlus.getInstance(), 20L); // 1 second delay
+    }
+
+    /**
+     * Unlocks all waystone recipes for a player so they appear in the recipe book
+     */
+    public static void unlockWaystoneRecipes(Player player) {
+        if (player == null || !player.isOnline()) return;
+        
+        if (!ConfigManager.enableCrafting) return;
+        
+        Map<String, WaystoneType> waystoneTypes = WaystoneMemory.getWaystoneTypes();
+        if (waystoneTypes == null || waystoneTypes.isEmpty()) return;
+        
+        for (WaystoneType waystoneType : waystoneTypes.values()) {
+            ShapedRecipe recipe = waystoneType.getRecipe();
+            if (recipe != null) {
+                // Verify recipe is registered before trying to discover it
+                if (org.bukkit.Bukkit.getServer().getRecipe(recipe.getKey()) != null) {
+                    player.discoverRecipe(recipe.getKey());
+                }
+            }
+        }
     }
 }
