@@ -9,6 +9,7 @@ import org.sweetrazory.waystonesplus.menu.MenuManager;
 import org.sweetrazory.waystonesplus.utils.ColoredText;
 import org.sweetrazory.waystonesplus.utils.ItemBuilder;
 import org.sweetrazory.waystonesplus.utils.ItemUtils;
+import org.sweetrazory.waystonesplus.utils.MenuIcons;
 import org.sweetrazory.waystonesplus.waystone.Waystone;
 
 public class IconMenu extends Menu {
@@ -34,7 +35,7 @@ public class IconMenu extends Menu {
                 .build();
         setItem(15, nonSolid);
 
-        setItem(22, new ItemBuilder(Material.BARRIER).displayName(ColoredText.getText(LangManager.returnText)).persistentData("action", "selectorMenu").build());
+        setItem(22, MenuIcons.returnButton(player, "settingsMenu"));
     }
 
     @Override
@@ -48,9 +49,8 @@ public class IconMenu extends Menu {
             } else if (action.equals("nonBlockMenu")) {
                 Menu nonSolidMenu = new NonBlockMenu(0);
                 MenuManager.openMenu(player, nonSolidMenu, waystone);
-            } else if (action.equals("selectorMenu")) {
-                Menu settingsMenu = new SettingsMenu();
-                MenuManager.openMenu(player, settingsMenu, waystone);
+            } else if (action.equals("settingsMenu") || action.equals("selectorMenu")) {
+                MenuManager.openMenu(player, new SettingsMenu(), waystone);
             }
         }
     }

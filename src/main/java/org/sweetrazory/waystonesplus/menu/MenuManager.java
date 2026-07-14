@@ -41,4 +41,8 @@ public class MenuManager {
     public static Waystone getPlayerWaystone(Player player) {
         return playerWaystones.get(player);
     }
+
+    public static void setPlayerWaystone(Player player, Waystone waystone) {
+        playerWaystones.put(player, waystone);
+    }
 }

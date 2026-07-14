@@ -6,9 +6,11 @@ import org.bukkit.inventory.ItemStack;
 import org.sweetrazory.waystonesplus.memoryhandlers.LangManager;
 import org.sweetrazory.waystonesplus.menu.Menu;
 import org.sweetrazory.waystonesplus.menu.MenuManager;
+import org.sweetrazory.waystonesplus.menu.TeleportMenu;
 import org.sweetrazory.waystonesplus.utils.ColoredText;
 import org.sweetrazory.waystonesplus.utils.ItemBuilder;
 import org.sweetrazory.waystonesplus.utils.ItemUtils;
+import org.sweetrazory.waystonesplus.utils.MenuIcons;
 import org.sweetrazory.waystonesplus.waystone.Waystone;
 
 import java.util.Arrays;
@@ -20,6 +22,10 @@ public class SettingsMenu extends Menu {
 
     @Override
     public void initializeItems(Player player, Waystone waystone) {
+        ItemStack renameMenu = new ItemBuilder(Material.ANVIL)
+                .persistentData("action", "renameSettings")
+                .displayName(ColoredText.getText("&6Rename Waystone"))
+                .build();
         ItemStack visibilityMenu = new ItemBuilder(Material.SPYGLASS)
                 .persistentData("action", "visibilitySettings")
                 .displayName(ColoredText.getText("&6Change Visibility"))
@@ -40,6 +46,10 @@ public class SettingsMenu extends Menu {
                 .displayName(ColoredText.getText("&6Change Waystone Icon"))
                 .persistentData("action", "iconSettings")
                 .build();
+        ItemStack teleportDirectionMenu = new ItemBuilder(Material.COMPASS)
+                .displayName(ColoredText.getText("&6Teleport Direction"))
+                .persistentData("action", "teleportDirection")
+                .build();
         ItemStack filler = new ItemBuilder(Material.BLACK_STAINED_GLASS_PANE)
                 .displayName(" ")
                 .build();
@@ -47,6 +57,9 @@ public class SettingsMenu extends Menu {
                 filler, filler, null, null, null, null, null, filler, filler,
                 filler, filler, filler, filler, filler, filler, filler, filler, filler).toArray(new ItemStack[0]));
 
+        if (player.isOp() || player.hasPermission("waystonesplus.menu.rename")) {
+            setItem(10, renameMenu);
+        }
         if (player.isOp() || player.hasPermission("waystonesplus.menu.visibility")) {
             setItem(11, visibilityMenu);
         }
@@ -62,8 +75,11 @@ public class SettingsMenu extends Menu {
         if (player.isOp() || player.hasPermission("waystonesplus.menu.icon")) {
             setItem(15, iconMenu);
         }
+        if (player.isOp() || player.hasPermission("waystonesplus.menu.settings")) {
+            setItem(16, teleportDirectionMenu);
+        }
 
-        setItem(22, new ItemBuilder(Material.BARRIER).displayName(ColoredText.getText(LangManager.returnText)).persistentData("action", "selectorMenu").build());
+        setItem(22, MenuIcons.returnButton(player, "teleportMenu"));
     }
 
     @Override
@@ -71,16 +87,15 @@ public class SettingsMenu extends Menu {
         String action = ItemUtils.getPersistentString(item, "action");
         if (action != null) {
             switch (action) {
-                case "selectorMenu":
-                    Menu selectorMenu = new SelectorMenu();
-                    MenuManager.openMenu(player, selectorMenu, waystone);
+                case "teleportMenu":
+                    MenuManager.openMenu(player, TeleportMenu.forPlayer(player), waystone);
                     break;
                 case "visibilitySettings":
                     Menu visibilitySettingsMenu = new VisibilitySettingsMenu();
                     MenuManager.openMenu(player, visibilitySettingsMenu, waystone);
                     break;
                 case "particleSettings":
-                    Menu particleMenu = new ParticleMenu();
+                    Menu particleMenu = new ParticleMenu(0);
                     MenuManager.openMenu(player, particleMenu, waystone);
                     break;
                 case "explorerSettings":
@@ -94,6 +109,14 @@ public class SettingsMenu extends Menu {
                 case "iconSettings":
                     Menu iconMenu = new IconMenu();
                     MenuManager.openMenu(player, iconMenu, waystone);
+                    break;
+                case "teleportDirection":
+                    Menu teleportDirectionMenu = new TeleportDirectionMenu();
+                    MenuManager.openMenu(player, teleportDirectionMenu, waystone);
+                    break;
+                case "renameSettings":
+                    Menu renameMenu = new RenameMenu();
+                    MenuManager.openMenu(player, renameMenu, waystone);
                     break;
             }
         }

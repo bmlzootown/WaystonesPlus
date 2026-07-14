@@ -4,6 +4,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.sweetrazory.waystonesplus.waystone.Waystone;
 
 public class MenuListener implements Listener {
@@ -21,6 +22,15 @@ public class MenuListener implements Listener {
             Menu menu = MenuManager.getOpenMenu(player);
             Waystone waystone = MenuManager.getPlayerWaystone(player); // Retrieve the associated Waystone
             menu.onInventoryClick(event, waystone); // Pass the Waystone to onInventoryClick
+        }
+    }
+
+    @EventHandler
+    public void onInventoryClose(InventoryCloseEvent event) {
+        Player player = (Player) event.getPlayer();
+
+        if (MenuManager.hasOpenMenu(player)) {
+            MenuManager.getOpenMenu(player).onInventoryClose(event);
         }
     }
 }

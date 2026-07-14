@@ -10,92 +10,99 @@ import org.sweetrazory.waystonesplus.menu.MenuManager;
 import org.sweetrazory.waystonesplus.utils.ColoredText;
 import org.sweetrazory.waystonesplus.utils.ItemBuilder;
 import org.sweetrazory.waystonesplus.utils.ItemUtils;
+import org.sweetrazory.waystonesplus.utils.MenuIcons;
+import org.sweetrazory.waystonesplus.utils.WaystoneParticleOptions;
 import org.sweetrazory.waystonesplus.waystone.Waystone;
 
+import java.util.List;
+
 public class ParticleMenu extends Menu {
+    private final WaystoneParticleOptions.Option[] options = WaystoneParticleOptions.OPTIONS;
+
     public ParticleMenu() {
-        super(27, ColoredText.getText(LangManager.particleMenuTitle), 0);
+        this(0);
+    }
+
+    public ParticleMenu(int page) {
+        super(54, ColoredText.getText(LangManager.particleMenuTitle), page);
     }
 
     @Override
     public void initializeItems(Player player, Waystone waystone) {
         ItemStack filler = new ItemBuilder(Material.BLACK_STAINED_GLASS_PANE).displayName(" ").build();
-        inventory.setContents(new ItemStack[]
-                {filler, filler, filler, filler, filler, filler, filler, filler, filler,
-                        filler, filler, null, filler, filler, filler, null, filler, filler,
-                        filler, filler, filler, filler, filler, filler, filler, filler, filler});
-        ItemStack enchant = new ItemBuilder(Material.ENCHANTED_BOOK)
-                .persistentData("action", "enchantedParticle")
-                .build();
-        setItem(10, enchant);
+        inventory.setContents(new ItemStack[]{
+                filler, filler, filler, filler, filler, filler, filler, filler, filler,
+                filler, null, null, null, null, null, null, null, filler,
+                filler, null, null, null, null, null, null, null, filler,
+                filler, null, null, null, null, null, null, null, filler,
+                filler, null, null, null, null, null, null, null, filler,
+                filler, filler, filler, filler, filler, null, filler, filler, filler
+        });
 
-        ItemStack hearts = new ItemBuilder(Material.RED_DYE)
-                .persistentData("action", "heartsParticle")
-                .build();
-        setItem(11, hearts);
-
-        ItemStack angry = new ItemBuilder(Material.FIRE_CHARGE)
-                .persistentData("action", "angryParticle")
-                .build();
-        setItem(12, angry);
-
-        ItemStack happy = new ItemBuilder(Material.GREEN_DYE)
-                .persistentData("action", "happyParticle")
-                .build();
-        setItem(13, happy);
-
-        ItemStack note = new ItemBuilder(Material.NOTE_BLOCK)
-                .persistentData("action", "noteParticle")
-                .build();
-        setItem(14, note);
-
-        ItemStack nether = new ItemBuilder(Material.OBSIDIAN)
-                .persistentData("action", "netherParticle")
-                .build();
-        setItem(15, nether);
-
-        ItemStack off = new ItemBuilder(Material.BARRIER)
+        setItem(49, MenuIcons.returnButton(player, "menu"));
+        setItem(45, new ItemBuilder(Material.BARRIER)
+                .displayName(ColoredText.getText("&cTurn Off Particles"))
                 .persistentData("action", "offParticle")
-                .build();
-        setItem(16, off);
+                .build());
 
-        ItemStack back = new ItemBuilder(Material.BARRIER)
-                .persistentData("action", "menu")
-                .displayName(ColoredText.getText(LangManager.returnText))
-                .build();
-        setItem(22, back);
+        int pageStart = page * WaystoneParticleOptions.PAGE_SIZE;
+        if (pageStart + WaystoneParticleOptions.PAGE_SIZE < options.length) {
+            setItem(50, MenuIcons.nextPageButton(player));
+        }
+        if (page > 0) {
+            setItem(48, MenuIcons.prevPageButton(player));
+        }
+
+        Particle current = waystone.getParticle();
+        int k = 0;
+        for (int row = 1; row < 5; row++) {
+            for (int col = 0; col < 7; col++) {
+                int index = pageStart + k;
+                if (index >= options.length) {
+                    break;
+                }
+                WaystoneParticleOptions.Option option = options[index];
+                boolean selected = option.particle() == current;
+                ItemBuilder builder = new ItemBuilder(option.icon())
+                        .displayName(ColoredText.getText((selected ? "&8" : "&6") + option.displayName()))
+                        .persistentData("action", "setParticle")
+                        .persistentData("particle", option.particle().name());
+                if (selected) {
+                    builder.lore(List.of(ColoredText.getText("&8Currently active")));
+                }
+                setItem(row * 9 + col + 1, builder.build());
+                k++;
+            }
+        }
     }
 
     @Override
     public void handleClick(Player player, ItemStack item) {
         String action = ItemUtils.getPersistentString(item, "action");
-        if (action != null) {
-            switch (action) {
-                case "offParticle":
-                    waystone.setParticle(null);
-                    break;
-                case "angryParticle":
-                    waystone.setParticle(Particle.VILLAGER_ANGRY);
-                    break;
-                case "happyParticle":
-                    waystone.setParticle(Particle.VILLAGER_HAPPY);
-                    break;
-                case "noteParticle":
-                    waystone.setParticle(Particle.NOTE);
-                    break;
-                case "netherParticle":
-                    waystone.setParticle(Particle.PORTAL);
-                    break;
-                case "enchantedParticle":
-                    waystone.setParticle(Particle.ENCHANTMENT_TABLE);
-                    break;
-                case "heartsParticle":
-                    waystone.setParticle(Particle.HEART);
-                    break;
-                case "menu":
-                    Menu settingsMenu = new SettingsMenu();
-                    MenuManager.openMenu(player, settingsMenu, waystone);
-                    break;
+        if (action == null) {
+            return;
+        }
+
+        switch (action) {
+            case "menu" -> MenuManager.openMenu(player, new SettingsMenu(), waystone);
+            case "nextPage" -> {
+                page++;
+                refresh(player, waystone);
+            }
+            case "prevPage" -> {
+                page--;
+                refresh(player, waystone);
+            }
+            case "offParticle" -> {
+                waystone.setParticle(null);
+                refresh(player, waystone);
+            }
+            case "setParticle" -> {
+                String particleName = ItemUtils.getPersistentString(item, "particle");
+                if (particleName != null) {
+                    waystone.setParticle(Particle.valueOf(particleName));
+                    refresh(player, waystone);
+                }
             }
         }
     }

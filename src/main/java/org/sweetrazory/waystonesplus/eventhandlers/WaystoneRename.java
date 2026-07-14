@@ -9,48 +9,67 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.sweetrazory.waystonesplus.WaystonesPlus;
-import org.sweetrazory.waystonesplus.memoryhandlers.LangManager;
-import org.sweetrazory.waystonesplus.utils.ColoredText;
 
+/**
+ * Preview-only handler for waystone rename anvils.
+ * Persistence happens when the player confirms the result (see RenameMenu).
+ */
 public class WaystoneRename {
     public WaystoneRename(PrepareAnvilEvent event) {
         AnvilInventory eventInventory = event.getInventory();
         ItemStack firstSlot = eventInventory.getItem(0);
         ItemStack secondSlot = eventInventory.getItem(1);
 
-        ItemStack waystoneItem;
         NamespacedKey waystoneIdKey = new NamespacedKey(WaystonesPlus.getInstance(), "waystoneId");
-        String waystoneId = "";
+        ItemStack waystoneItem = null;
+
         if (firstSlot != null && firstSlot.getItemMeta() != null) {
-            waystoneId = firstSlot.getItemMeta().getPersistentDataContainer().get(waystoneIdKey, PersistentDataType.STRING);
-        } else if (secondSlot != null && secondSlot.getItemMeta() != null) {
-            waystoneId = secondSlot.getItemMeta().getPersistentDataContainer().get(waystoneIdKey, PersistentDataType.STRING);
-        }
-
-        if (secondSlot == null && waystoneId != null) {
-            waystoneItem = firstSlot;
-        } else if (firstSlot == null && waystoneId == null && secondSlot.getItemMeta().getPersistentDataContainer().get(waystoneIdKey, PersistentDataType.STRING) != null) {
-            waystoneItem = secondSlot;
-        } else {
-            return;
-        }
-        Player player = (Player) event.getView().getPlayer();
-        boolean playerHasPermission = event.getView().getPlayer().hasPermission("waystonesplus.rename") || player.isOp();
-
-        if (waystoneItem != null && !playerHasPermission) {
-            event.setResult(null);
-        } else if (waystoneItem != null) {
-            ItemMeta renameFixer = waystoneItem.getItemMeta();
-            String anvilText = event.getInventory().getRenameText();
-            if (anvilText != null && anvilText.length() == 0) {
-                event.setResult(null);
-            } else {
-                renameFixer.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&r&6" + anvilText));
-
-                waystoneItem.setItemMeta(renameFixer);
-                event.setResult(waystoneItem);
-                event.getInventory().setRepairCost(0);
+            String id = firstSlot.getItemMeta().getPersistentDataContainer().get(waystoneIdKey, PersistentDataType.STRING);
+            if (id != null) {
+                waystoneItem = firstSlot;
             }
         }
+
+        if (waystoneItem == null && secondSlot != null && secondSlot.getItemMeta() != null) {
+            String id = secondSlot.getItemMeta().getPersistentDataContainer().get(waystoneIdKey, PersistentDataType.STRING);
+            if (id != null) {
+                waystoneItem = secondSlot;
+            }
+        }
+
+        if (waystoneItem == null) {
+            return;
+        }
+
+        Player player = (Player) event.getView().getPlayer();
+        boolean playerHasPermission = player.hasPermission("waystonesplus.rename")
+                || player.hasPermission("waystonesplus.menu.rename")
+                || player.isOp();
+
+        if (!playerHasPermission) {
+            event.setResult(null);
+            return;
+        }
+
+        String anvilText = eventInventory.getRenameText();
+        // Do not mutate the input item — that causes rename-text / null flicker.
+        ItemStack result = waystoneItem.clone();
+        ItemMeta meta = result.getItemMeta();
+        if (meta == null) {
+            event.setResult(null);
+            return;
+        }
+
+        if (anvilText == null || anvilText.isEmpty()) {
+            // Keep the current name as the preview until the player types something.
+            event.setResult(result);
+            eventInventory.setRepairCost(0);
+            return;
+        }
+
+        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&r&6" + anvilText));
+        result.setItemMeta(meta);
+        event.setResult(result);
+        eventInventory.setRepairCost(0);
     }
 }

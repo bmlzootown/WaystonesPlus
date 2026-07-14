@@ -10,6 +10,7 @@ import org.sweetrazory.waystonesplus.utils.ColoredText;
 import org.sweetrazory.waystonesplus.utils.DB;
 import org.sweetrazory.waystonesplus.utils.ItemBuilder;
 import org.sweetrazory.waystonesplus.utils.ItemUtils;
+import org.sweetrazory.waystonesplus.utils.MenuIcons;
 import org.sweetrazory.waystonesplus.waystone.Waystone;
 
 import java.util.List;
@@ -37,28 +38,14 @@ public class ExploredMenu extends Menu {
         }
 
         if (page > 0) {
-            ItemStack previousPageItem = new ItemBuilder(Material.ARROW)
-                    .displayName(ColoredText.getText(LangManager.prevPage))
-                    .persistentData("action", "prevPage")
-                    .persistentData("page", String.valueOf(page - 1))
-                    .build();
-            setItem(45, previousPageItem);
+            setItem(45, MenuIcons.prevPageButton(player, page - 1));
         }
 
         if (endIndex < explorers.size()) {
-            ItemStack nextPageItem = new ItemBuilder(Material.ARROW)
-                    .displayName(ColoredText.getText(LangManager.nextPage))
-                    .persistentData("action", "nextPage")
-                    .persistentData("page", String.valueOf(page + 1))
-                    .build();
-            setItem(53, nextPageItem);
+            setItem(53, MenuIcons.nextPageButton(player, page + 1));
         }
 
-        ItemStack backButton = new ItemBuilder(Material.BARRIER)
-                .displayName(ColoredText.getText(LangManager.returnText))
-                .persistentData("action", "menu")
-                .build();
-        setItem(49, backButton);
+        setItem(49, MenuIcons.returnButton(player, "menu"));
     }
 
     @Override
@@ -66,8 +53,7 @@ public class ExploredMenu extends Menu {
         String action = ItemUtils.getPersistentString(item, "action");
         if (action != null) {
             if (action.equals("menu")) {
-                Menu menu = new SelectorMenu();
-                MenuManager.openMenu(player, menu, waystone);
+                MenuManager.openMenu(player, new SettingsMenu(), waystone);
             } else if (action.equals("prevPage")) {
                 int prevPage = Integer.parseInt(ItemUtils.getPersistentString(item, "page"));
                 Menu prevMenu = new ExploredMenu(prevPage);

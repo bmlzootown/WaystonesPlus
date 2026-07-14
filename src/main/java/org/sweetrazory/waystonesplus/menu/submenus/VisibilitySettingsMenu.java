@@ -11,6 +11,7 @@ import org.sweetrazory.waystonesplus.utils.ColoredText;
 import org.sweetrazory.waystonesplus.utils.DB;
 import org.sweetrazory.waystonesplus.utils.ItemBuilder;
 import org.sweetrazory.waystonesplus.utils.ItemUtils;
+import org.sweetrazory.waystonesplus.utils.MenuIcons;
 import org.sweetrazory.waystonesplus.waystone.Waystone;
 
 import java.util.Arrays;
@@ -22,11 +23,7 @@ public class VisibilitySettingsMenu extends Menu {
 
     @Override
     public void initializeItems(Player player, Waystone waystone) {
-        ItemStack globalVisibility = new ItemBuilder(Material.YELLOW_CONCRETE_POWDER)
-                .persistentData("action", "visibilityGlobal")
-                .displayName(ColoredText.getText("&6GLOBAL"))
-                .lore(Arrays.asList(ColoredText.getText("&6Set your Waystone's"), ColoredText.getText("&6Visibility to GLOBAL")))
-                .build();
+        ItemStack globalVisibility = null;
         ItemStack publicVisibility = new ItemBuilder(Material.GREEN_CONCRETE_POWDER)
                 .persistentData("action", "visibilityPublic")
                 .displayName(ColoredText.getText("&aPUBLIC"))
@@ -38,13 +35,24 @@ public class VisibilitySettingsMenu extends Menu {
                 .lore(Arrays.asList(ColoredText.getText("&6Set your Waystone's"), ColoredText.getText("&6Visibility to PRIVATE")))
                 .build();
 
+        // Only show GLOBAL option if player has permission
+        if (player.isOp() || player.hasPermission("waystonesplus.menu.visibility.global")) {
+            globalVisibility = new ItemBuilder(Material.YELLOW_CONCRETE_POWDER)
+                    .persistentData("action", "visibilityGlobal")
+                    .displayName(ColoredText.getText("&6GLOBAL"))
+                    .lore(Arrays.asList(ColoredText.getText("&6Set your Waystone's"), ColoredText.getText("&6Visibility to GLOBAL")))
+                    .build();
+        }
+
         switch (waystone.getVisibility()) {
             case GLOBAL:
-                globalVisibility = new ItemBuilder(Material.GRAY_CONCRETE_POWDER)
-                        .persistentData("active", false)
-                        .displayName(ColoredText.getText("&8GLOBAL"))
-                        .lore(Arrays.asList(ColoredText.getText("&8Waystone is"), ColoredText.getText("&8already GLOBAL")))
-                        .build();
+                if (globalVisibility != null) {
+                    globalVisibility = new ItemBuilder(Material.GRAY_CONCRETE_POWDER)
+                            .persistentData("active", false)
+                            .displayName(ColoredText.getText("&8GLOBAL"))
+                            .lore(Arrays.asList(ColoredText.getText("&8Waystone is"), ColoredText.getText("&8already GLOBAL")))
+                            .build();
+                }
                 break;
             case PUBLIC:
                 publicVisibility = new ItemBuilder(Material.GRAY_CONCRETE_POWDER)
@@ -62,14 +70,12 @@ public class VisibilitySettingsMenu extends Menu {
                 break;
         }
 
-        setItem(11, globalVisibility);
+        if (globalVisibility != null) {
+            setItem(11, globalVisibility);
+        }
         setItem(13, publicVisibility);
         setItem(15, privateVisibility);
-        ItemStack backButton = new ItemBuilder(Material.BARRIER)
-                .displayName(ColoredText.getText(LangManager.returnText))
-                .persistentData("action", "back")
-                .build();
-        setItem(22, backButton);
+        setItem(22, MenuIcons.returnButton(player, "back"));
     }
 
     @Override
@@ -79,9 +85,14 @@ public class VisibilitySettingsMenu extends Menu {
             Menu visibilityMenu = new VisibilitySettingsMenu();
             switch (action) {
                 case "visibilityGlobal":
-                    waystone.setVisibility(Visibility.GLOBAL);
-                    DB.updateWaystone(waystone);
-                    MenuManager.openMenu(player, visibilityMenu, waystone);
+                    // Check permission again (in case they somehow clicked it)
+                    if (player.isOp() || player.hasPermission("waystonesplus.menu.visibility.global")) {
+                        waystone.setVisibility(Visibility.GLOBAL);
+                        DB.updateWaystone(waystone);
+                        MenuManager.openMenu(player, visibilityMenu, waystone);
+                    } else {
+                        player.sendMessage(ColoredText.getText(LangManager.noPermission));
+                    }
                     break;
                 case "visibilityPublic":
                     waystone.setVisibility(Visibility.PUBLIC);

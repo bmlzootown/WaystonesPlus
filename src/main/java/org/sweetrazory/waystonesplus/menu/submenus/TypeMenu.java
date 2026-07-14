@@ -12,6 +12,7 @@ import org.sweetrazory.waystonesplus.types.WaystoneType;
 import org.sweetrazory.waystonesplus.utils.ColoredText;
 import org.sweetrazory.waystonesplus.utils.ItemBuilder;
 import org.sweetrazory.waystonesplus.utils.ItemUtils;
+import org.sweetrazory.waystonesplus.utils.MenuIcons;
 import org.sweetrazory.waystonesplus.waystone.Waystone;
 
 import java.util.ArrayList;
@@ -40,11 +41,7 @@ public class TypeMenu extends Menu {
                     .build());
         }
 
-        ItemStack backButton = new ItemBuilder(Material.BARRIER)
-                .displayName(ColoredText.getText(LangManager.returnText))
-                .persistentData("action", "menu")
-                .build();
-        setItem(22, backButton);
+        setItem(22, MenuIcons.returnButton(player, "menu"));
     }
 
     @Override
